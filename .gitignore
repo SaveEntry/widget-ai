@@ -1,0 +1,11 @@
+**/target/
+**/node_modules/
+**/dist/
+**/.vite/
+.env
+.idea/
+.vscode/
+*.iml
+*.tsbuildinfo
+coverage/
+

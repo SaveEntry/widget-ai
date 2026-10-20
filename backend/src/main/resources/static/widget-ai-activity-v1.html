@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Widget.ai poll preview</title>
+  <style>
+    :root { color-scheme: light dark; font: 15px/1.5 system-ui, sans-serif; }
+    body { margin: 0; padding: 20px; background: transparent; color: CanvasText; }
+    main { max-width: 520px; margin: auto; padding: 22px; border: 1px solid color-mix(in srgb, CanvasText 14%, transparent); border-radius: 18px; background: Canvas; }
+    .brand { display: flex; align-items: center; gap: 9px; color: #6655d9; font-weight: 700; letter-spacing: .01em; }
+    .mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: #eeeaff; color: #6655d9; }
+    .eyebrow { margin: 20px 0 5px; color: GrayText; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 0 0 16px; font-size: 21px; line-height: 1.25; }
+    ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    li { padding: 11px 13px; border: 1px solid color-mix(in srgb, CanvasText 14%, transparent); border-radius: 11px; }
+    .note { margin: 16px 0 0; color: GrayText; font-size: 12px; }
+    .tag { float: right; padding: 3px 8px; border-radius: 99px; background: color-mix(in srgb, #6655d9 12%, Canvas); color: #6655d9; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <main aria-labelledby="question">
+    <div class="brand"><span class="mark" aria-hidden="true">W</span> Widget.ai <span class="tag">PREVIEW</span></div>
+    <p class="eyebrow">Optional product poll</p>
+    <h1 id="question">Which laptop feature matters most to you?</h1>
+    <ul aria-label="Poll options"><li>Battery life</li><li>Performance</li><li>Repairability</li></ul>
+    <p class="note">This preview does not collect an answer or award WidgetPoints. You can skip or close it.</p>
+  </main>
+</body>
+</html>
+
