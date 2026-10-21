@@ -17,9 +17,10 @@ public class WidgetAiResource {
 
     @McpResource(
             uri = "ui://widget-ai/activity-v1.html",
-            name = "Widget.ai activity preview",
-            description = "A preview-only Widget.ai poll card.",
-            mimeType = "text/html;profile=mcp-app")
+            name = "Widget.ai poll activity",
+            description = "Interactive Widget.ai poll card with optional voting.",
+            mimeType = "text/html;profile=mcp-app",
+            metaProvider = WidgetAiResourceMetadata.class)
     public String activityWidget() throws IOException {
         try (var input = widget.getInputStream()) {
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);

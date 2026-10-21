@@ -19,9 +19,10 @@ spring:
         protocol: STREAMABLE
         type: SYNC
         instructions: >-
-          Widget.ai offers optional consumer research activities. Explain the activity,
-          clearly disclose that this preview is not collecting an answer, and let the
-          user skip or close it. Do not imply a native ChatGPT feature or OpenAI approval.
+          Widget.ai offers optional polls. Explain that selected answers are stored and
+          that no points or other rewards are currently awarded. Never submit a vote
+          without an explicit choice and click in the poll UI. Participation can be skipped.
+          Do not imply a native ChatGPT feature or OpenAI approval.
 management:
   endpoints:
     web:
