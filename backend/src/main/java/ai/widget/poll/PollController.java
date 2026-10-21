@@ -14,14 +14,15 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/polls")
 public class PollController {
+    public static final String NO_REWARDS_DISCLOSURE = "No rewards are issued in this demo.";
     private final JdbcTemplate jdbc;
 
     public PollController(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
     @GetMapping
     public List<PollSummary> list() {
-        return jdbc.query("SELECT id, question, reward_disclosure FROM polls WHERE status='ACTIVE' ORDER BY created_at DESC",
-                (rs, row) -> new PollSummary(rs.getObject("id", UUID.class), rs.getString("question"), rs.getString("reward_disclosure")));
+        return jdbc.query("SELECT id, question FROM polls WHERE status='ACTIVE' ORDER BY created_at DESC",
+                (rs, row) -> new PollSummary(rs.getObject("id", UUID.class), rs.getString("question"), NO_REWARDS_DISCLOSURE));
     }
 
     @GetMapping("/{pollId}")
@@ -40,12 +41,8 @@ public class PollController {
         var options = request.options().stream().map(s -> s == null ? "" : s.trim()).toList();
         if (options.stream().anyMatch(s -> s.isBlank() || s.length() > 120) || options.stream().map(String::toLowerCase).distinct().count() != options.size())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choices must be unique and 1 to 120 characters.");
-        String disclosure = request.rewardDisclosure() == null || request.rewardDisclosure().isBlank()
-                ? "No rewards are offered for this poll." : request.rewardDisclosure().trim();
-        if (disclosure.length() > 500) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reward disclosure is too long.");
-
         UUID id = jdbc.queryForObject("INSERT INTO polls(question, reward_disclosure) VALUES (?, ?) RETURNING id",
-                UUID.class, request.question().trim(), disclosure);
+                UUID.class, request.question().trim(), NO_REWARDS_DISCLOSURE);
         for (int i = 0; i < options.size(); i++)
             jdbc.update("INSERT INTO poll_options(poll_id, label, position) VALUES (?, ?, ?)", id, options.get(i), i);
         return load(id, null);
@@ -69,11 +66,11 @@ public class PollController {
     }
 
     private PollView load(UUID pollId, UUID voterId) {
-        var rows = jdbc.query("SELECT p.question, p.reward_disclosure, p.status, o.id option_id, o.label, count(v.id) votes " +
+        var rows = jdbc.query("SELECT p.question, p.status, o.id option_id, o.label, count(v.id) votes " +
                 "FROM polls p JOIN poll_options o ON o.poll_id=p.id LEFT JOIN poll_votes v ON v.option_id=o.id " +
                 "WHERE p.id=? GROUP BY p.id, o.id ORDER BY o.position", (rs, row) -> new OptionResult(
                 rs.getObject("option_id", UUID.class), rs.getString("label"), rs.getLong("votes"),
-                rs.getString("question"), rs.getString("reward_disclosure"), rs.getString("status")), pollId);
+                rs.getString("question"), rs.getString("status")), pollId);
         if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found.");
         var first = rows.get(0);
         UUID selected = null;
@@ -83,7 +80,7 @@ public class PollController {
         }
         long total = rows.stream().mapToLong(OptionResult::votes).sum();
         var options = rows.stream().map(r -> new PollOption(r.id(), r.label(), r.votes(), total == 0 ? 0 : Math.round(100.0 * r.votes() / total))).toList();
-        return new PollView(pollId, first.question(), first.disclosure(), first.status().equals("ACTIVE"), options, total, selected);
+        return new PollView(pollId, first.question(), NO_REWARDS_DISCLOSURE, first.status().equals("ACTIVE"), options, total, selected);
     }
 
     public record CreatePoll(String question, List<String> options, String rewardDisclosure) {}
@@ -91,5 +88,5 @@ public class PollController {
     public record PollSummary(UUID id, String question, String rewardDisclosure) {}
     public record PollOption(UUID id, String label, long votes, long percent) {}
     public record PollView(UUID id, String question, String rewardDisclosure, boolean active, List<PollOption> options, long totalVotes, UUID selectedOptionId) {}
-    private record OptionResult(UUID id, String label, long votes, String question, String disclosure, String status) {}
+    private record OptionResult(UUID id, String label, long votes, String question, String status) {}
 }

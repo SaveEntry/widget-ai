@@ -5,29 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Widget.ai poll</title>
   <style>
-    :root { color-scheme: light dark; font: 15px/1.5 system-ui, sans-serif; }
+    :root { color-scheme: light dark; font: 14px/1.45 system-ui, sans-serif; }
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 16px; background: transparent; color: CanvasText; }
-    main { max-width: 520px; margin: auto; padding: 22px; border: 1px solid color-mix(in srgb, CanvasText 14%, transparent); border-radius: 18px; background: Canvas; }
-    .brand { display: flex; align-items: center; gap: 9px; color: #6655d9; font-weight: 700; }
-    .mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: #eeeaff; color: #6655d9; }
-    .tag { margin-left: auto; padding: 3px 8px; border-radius: 99px; background: color-mix(in srgb, #6655d9 12%, Canvas); color: #6655d9; font-size: 11px; }
-    .eyebrow { margin: 20px 0 5px; color: GrayText; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-    h1 { margin: 0 0 16px; font-size: 21px; line-height: 1.25; }
-    #choices { display: grid; gap: 8px; }
-    .choice { position: relative; display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: space-between; overflow: hidden; padding: 10px 13px; border: 1px solid color-mix(in srgb, CanvasText 14%, transparent); border-radius: 11px; background: Canvas; color: CanvasText; text-align: left; cursor: pointer; }
+    body { margin: 0; padding: 0; background: transparent; color: CanvasText; }
+    main { width: 100%; margin: 0; padding: 16px; border: 1px solid color-mix(in srgb, CanvasText 14%, transparent); border-radius: 16px; background: Canvas; }
+    .brand { display: flex; align-items: center; gap: 8px; color: #6655d9; font-weight: 700; }
+    .mark { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: #eeeaff; color: #6655d9; }
+    .tag { margin-left: auto; padding: 3px 8px; border-radius: 99px; background: color-mix(in srgb, #6655d9 12%, Canvas); color: #6655d9; font-size: 10px; }
+    .eyebrow { margin: 13px 0 3px; color: GrayText; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 0 0 12px; font-size: 19px; line-height: 1.3; }
+    #choices { display: grid; gap: 6px; }
+    .choice { position: relative; display: flex; width: 100%; min-height: 40px; align-items: center; justify-content: space-between; overflow: hidden; padding: 8px 11px; border: 1px solid color-mix(in srgb, CanvasText 14%, transparent); border-radius: 10px; background: Canvas; color: CanvasText; text-align: left; cursor: pointer; }
     .choice:hover:not(:disabled), .choice[aria-pressed="true"] { border-color: #7667dc; background: color-mix(in srgb, #6655d9 7%, Canvas); }
     .choice:disabled { cursor: default; }
     .bar { position: absolute; inset: 0 auto 0 0; z-index: 0; background: color-mix(in srgb, #6655d9 12%, Canvas); }
     .label, .result { position: relative; z-index: 1; }
-    .result { color: GrayText; font-size: 12px; }
-    .note { margin: 15px 0 0; color: GrayText; font-size: 12px; }
-    .actions { display: flex; gap: 9px; margin-top: 14px; }
-    button.action { flex: 1; padding: 11px 14px; border: 0; border-radius: 10px; background: #6655d9; color: white; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
-    button.action.secondary { border: 1px solid color-mix(in srgb, CanvasText 14%, transparent); background: Canvas; color: CanvasText; }
+    .label { min-width: 0; overflow-wrap: anywhere; }
+    .result { flex: 0 0 auto; margin-left: 10px; color: GrayText; font-size: 11px; white-space: nowrap; }
+    .note { margin: 10px 0 0; padding: 7px 9px; border-inline-start: 3px solid color-mix(in srgb, #6655d9 55%, Canvas); border-radius: 7px; background: color-mix(in srgb, #6655d9 6%, Canvas); color: GrayText; font-size: 11px; line-height: 1.4; }
+    .actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    button.action { flex: 1; min-height: 38px; padding: 8px 12px; border: 0; border-radius: 9px; background: #6655d9; color: white; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+    button.action.secondary { flex: 0 0 auto; min-width: 68px; border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); background: Canvas; color: CanvasText; }
     button.action:disabled { opacity: .55; cursor: not-allowed; }
-    #status { min-height: 20px; margin-top: 10px; color: GrayText; font-size: 12px; }
+    #status { min-height: 0; margin-top: 8px; color: GrayText; font-size: 11px; }
+    #status:empty { display: none; }
     #status.error { color: #b42318; }
+    @media (max-width: 420px) { main { padding: 12px; border-radius: 12px; } }
   </style>
 </head>
 <body>
@@ -47,12 +50,37 @@
       const disclosureEl = document.querySelector('#disclosure');
       const actionsEl = document.querySelector('#actions');
       const statusEl = document.querySelector('#status');
+      const cardEl = document.querySelector('main');
       let poll = null;
       let selection = null;
       let busy = false;
       let requestId = 0;
       const pending = new Map();
+      const locallyVotedPolls = new Set();
       const voterId = getVoterId();
+
+      let heightFrame = 0;
+      function reportIntrinsicHeight() {
+        if (!window.openai?.notifyIntrinsicHeight) return;
+        cancelAnimationFrame(heightFrame);
+        heightFrame = requestAnimationFrame(() => {
+          window.openai.notifyIntrinsicHeight(Math.ceil(cardEl.getBoundingClientRect().height));
+        });
+      }
+      if ('ResizeObserver' in window) {
+        new ResizeObserver(reportIntrinsicHeight).observe(cardEl);
+      }
+      reportIntrinsicHeight();
+
+      function markVoted(pollId) {
+        locallyVotedPolls.add(pollId);
+        try { localStorage.setItem(`widget-ai-voted:${pollId}`, 'true'); } catch (_) {}
+      }
+
+      function alreadyVoted(pollId) {
+        if (locallyVotedPolls.has(pollId)) return true;
+        try { return localStorage.getItem(`widget-ai-voted:${pollId}`) === 'true'; } catch (_) { return false; }
+      }
 
       function getVoterId() {
         const key = 'widget-ai-voter-id';
@@ -123,8 +151,8 @@
 
         selection = poll.selectedOptionId || selection;
         questionEl.textContent = poll.question;
-        disclosureEl.textContent = `${poll.rewardDisclosure || 'No rewards are offered for this poll.'} This demo does not issue points or rewards.`;
-        const hasVoted = Boolean(poll.selectedOptionId);
+        disclosureEl.textContent = 'Optional poll. No rewards are issued in this demo.';
+        const hasVoted = Boolean(poll.selectedOptionId) || alreadyVoted(poll.id);
         choicesEl.replaceChildren(...poll.options.map(option => {
           const button = document.createElement('button');
           button.type = 'button';
@@ -165,7 +193,7 @@
           skip.className = 'action secondary';
           skip.textContent = 'Skip';
           skip.disabled = busy;
-          skip.addEventListener('click', () => { poll = null; questionEl.textContent = 'Poll skipped'; choicesEl.replaceChildren(); disclosureEl.textContent = 'You can close this activity at any time.'; actionsEl.replaceChildren(); setStatus(''); });
+          skip.addEventListener('click', () => { poll = null; questionEl.textContent = 'Poll skipped'; choicesEl.replaceChildren(); disclosureEl.textContent = 'Your response was not recorded.'; actionsEl.replaceChildren(); setStatus(''); });
           actionsEl.append(skip);
         } else {
           const done = document.createElement('p');
@@ -189,12 +217,29 @@
           const result = payloadFrom(response);
           if (response?.isError) {
             const message = response.content?.find(item => item.type === 'text')?.text || 'Your vote could not be submitted.';
+            if (/already voted/i.test(message)) {
+              markVoted(poll.id);
+              render(poll);
+              setStatus('You already voted. Here are the current results.');
+              return;
+            }
             showError(new Error(message));
           } else {
+            markVoted(poll.id);
             render(result);
             setStatus('');
           }
-        } catch (error) { busy = false; render(poll); showError(error); }
+        } catch (error) {
+          busy = false;
+          if (/already voted/i.test(error?.message || '')) {
+            markVoted(poll.id);
+            render(poll);
+            setStatus('You already voted. Here are the current results.');
+            return;
+          }
+          render(poll);
+          showError(error);
+        }
       }
 
       window.addEventListener('message', event => {
@@ -224,6 +269,15 @@
           rpcNotify('ui/notifications/initialized', {});
           const initial = window.openai && window.openai.toolOutput;
           if (initial) render(initial);
+          try {
+            const refreshed = await rpcRequest('tools/call', {
+              name: 'show_widgetai',
+              arguments: { voterId },
+            });
+            if (!refreshed?.isError) render(refreshed);
+          } catch (_) {
+            // Keep the poll payload supplied during tool invocation as a fallback.
+          }
         } catch (error) { showError(error); }
       }
 

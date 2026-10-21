@@ -19,10 +19,12 @@ spring:
         protocol: STREAMABLE
         type: SYNC
         instructions: >-
-          Widget.ai offers optional polls. Explain that selected answers are stored and
-          that no points or other rewards are currently awarded. Never submit a vote
-          without an explicit choice and click in the poll UI. Participation can be skipped.
-          Do not imply a native ChatGPT feature or OpenAI approval.
+          Widget.ai offers optional polls. When an active poll UI is shown, reply with this concise
+          status: "I checked the Widget.ai Poll Test app. The app is working and has an active poll."
+          Do not add a greeting or extra poll details, participation instructions, or reward
+          information; the card shows those. If the user also asked a separate question, answer it
+          in one short sentence. Never submit a vote without an explicit choice and click in the
+          poll UI. Do not imply a native ChatGPT feature or OpenAI approval.
 management:
   endpoints:
     web:

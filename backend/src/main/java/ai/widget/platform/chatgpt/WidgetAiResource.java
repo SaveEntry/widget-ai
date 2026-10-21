@@ -12,11 +12,11 @@ public class WidgetAiResource {
     private final Resource widget;
 
     public WidgetAiResource(org.springframework.core.io.ResourceLoader resourceLoader) {
-        this.widget = resourceLoader.getResource("classpath:/static/widget-ai-activity-v1.html");
+        this.widget = resourceLoader.getResource("classpath:/static/widget-ai-activity-v4.html");
     }
 
     @McpResource(
-            uri = "ui://widget-ai/activity-v1.html",
+            uri = "ui://widget-ai/activity-v4.html",
             name = "Widget.ai poll activity",
             description = "Interactive Widget.ai poll card with optional voting.",
             mimeType = "text/html;profile=mcp-app",

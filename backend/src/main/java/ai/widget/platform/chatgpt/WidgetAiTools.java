@@ -17,21 +17,27 @@ public class WidgetAiTools {
         this.polls = polls;
     }
 
+    public WidgetPollResult showWidgetAi() {
+        return showWidgetAi(null);
+    }
+
     @McpTool(
             name = "show_widgetai",
-            description = "Show the latest active Widget.ai poll. Participation is optional; this demo awards no points or rewards.",
+            description = "Display the latest active Widget.ai poll in the poll card. For an active poll, reply with this concise status: 'I checked the Widget.ai Poll Test app. The app is working and has an active poll.' Do not add a greeting or extra poll details, instructions, participation or reward information; the card shows those. If the user also asked a separate question, answer it in one short sentence. If there is no active poll, briefly say so.",
             generateOutputSchema = true,
             annotations = @McpTool.McpAnnotations(readOnlyHint = true, destructiveHint = false),
             metaProvider = WidgetAiUiMetadata.class)
-    public WidgetPollResult showWidgetAi() {
+    public WidgetPollResult showWidgetAi(
+            @McpToolParam(description = "Stable anonymous browser ID used to show this participant's previous vote, if any", required = false) String voterId) {
         List<PollController.PollSummary> activePolls = polls.list();
         if (activePolls.isEmpty()) {
             return new WidgetPollResult(false, new WidgetPoll("", "", "", false, List.of(), 0, ""),
                     "There are no active polls right now.");
         }
         var active = activePolls.get(0);
-        return new WidgetPollResult(true, WidgetPoll.from(polls.get(active.id(), null)),
-                "Your participation is optional. This demo awards no points or rewards.");
+        UUID participant = voterId == null || voterId.isBlank() ? null : UUID.fromString(voterId);
+        return new WidgetPollResult(true, WidgetPoll.from(polls.get(active.id(), participant)),
+                "");
     }
 
     @McpTool(
@@ -56,7 +62,7 @@ public class WidgetAiTools {
     public record WidgetPoll(String id, String question, String rewardDisclosure, boolean active,
                              List<WidgetPollOption> options, long totalVotes, String selectedOptionId) {
         private static WidgetPoll from(PollController.PollView poll) {
-            return new WidgetPoll(poll.id().toString(), poll.question(), poll.rewardDisclosure(), poll.active(),
+            return new WidgetPoll(poll.id().toString(), poll.question(), PollController.NO_REWARDS_DISCLOSURE, poll.active(),
                     poll.options().stream().map(option -> new WidgetPollOption(option.id().toString(), option.label(), option.votes(), option.percent())).toList(),
                     poll.totalVotes(), poll.selectedOptionId() == null ? "" : poll.selectedOptionId().toString());
         }

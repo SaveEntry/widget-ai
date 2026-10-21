@@ -11,8 +11,8 @@ public class WidgetAiUiMetadata implements MetaProvider {
     @Override
     public Map<String, Object> getMeta() {
         return Map.of(
-                "ui", Map.of("resourceUri", "ui://widget-ai/activity-v1.html", "visibility", List.of("model", "app")),
-                "openai/outputTemplate", "ui://widget-ai/activity-v1.html",
+                "ui", Map.of("resourceUri", "ui://widget-ai/activity-v4.html", "visibility", List.of("model", "app")),
+                "openai/outputTemplate", "ui://widget-ai/activity-v4.html",
                 "openai/widgetAccessible", true,
                 "openai/toolInvocation/invoking", "Loading a poll…",
                 "openai/toolInvocation/invoked", "Poll is ready");
